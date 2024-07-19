@@ -1,20 +1,10 @@
-#![allow(unused)]
+#![allow(dead_code)]
 
-use aws_config::meta::region::RegionProviderChain;
-use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
-use aws_sdk_s3::types::CompletedPart;
-use aws_types::region::Region;
-use bytes::{Buf, Bytes};
-use s3::operation::put_object::PutObjectError;
 use s3::primitives::ByteStream;
-use std::borrow::Borrow;
-use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-
-const MIN_PART_SIZE_5MB: usize = 5_242_880;
 
 async fn fetch_bucket_objects(
     client: &s3::Client,

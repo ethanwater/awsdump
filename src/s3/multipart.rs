@@ -1,3 +1,8 @@
+use aws_sdk_s3 as s3;
+use std::time::Instant;
+use aws_sdk_s3::types::{CompletedPart,CompletedMultipartUpload};
+use s3::primitives::ByteStream;
+
 const MIN_PART_SIZE_5MB: usize = 5_242_880;
 
 async fn chunkify(file: &str, chunk_amt: usize) -> Result<Vec<ByteStream>, ()> {
@@ -31,13 +36,13 @@ async fn chunkify(file: &str, chunk_amt: usize) -> Result<Vec<ByteStream>, ()> {
     Ok(chunks)
 }
 
-async fn multipart_upload(
+pub async fn multipart_upload(
     client: &s3::Client,
     bucket: &str,
     key: &str,
     chunk_amt: usize,
 ) -> Result<(), s3::Error> {
-    let start_time = std::time::Instant::now();
+    let start_time = Instant::now();
     let multipart_init_response = client
         .create_multipart_upload()
         .bucket(bucket)
@@ -46,7 +51,7 @@ async fn multipart_upload(
         .await;
 
     let upload_id = multipart_init_response?.upload_id.unwrap();
-    let mut completed_parts: Vec<aws_sdk_s3::types::CompletedPart> = Vec::new();
+    let mut completed_parts: Vec<CompletedPart> = Vec::new();
     let (chunks, mut part_number) = (chunkify(key, chunk_amt).await.unwrap(), 1);
 
     for chunk in chunks {
@@ -61,7 +66,7 @@ async fn multipart_upload(
             .await
             .unwrap();
 
-        let part = aws_sdk_s3::types::CompletedPart::builder()
+        let part = CompletedPart::builder()
             .set_part_number(Some(part_number))
             .set_e_tag(Some(upload_part_response.e_tag.unwrap()))
             .build();
@@ -70,7 +75,7 @@ async fn multipart_upload(
         part_number += 1;
     }
 
-    let completed_multipart_upload = aws_sdk_s3::types::CompletedMultipartUpload::builder()
+    let completed_multipart_upload = CompletedMultipartUpload::builder()
         .set_parts(Some(completed_parts))
         .build();
 
