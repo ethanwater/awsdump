@@ -19,6 +19,6 @@ async fn main() -> Result<(), aws_sdk_s3::Error> {
         .await;
 
     let client = aws_sdk_s3::Client::new(&config);
-    let _ = s3::multipart::multipart_upload(&client, &aws_bucket, "multipart-test.txt", 4).await?;
+    let _ = s3::multipart::multipart_upload(&client, &aws_bucket, "multipart-test.txt", None).await?;
     Ok(())
 }

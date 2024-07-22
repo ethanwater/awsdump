@@ -120,6 +120,3 @@ async fn delete_bucket_object(
     }
     Ok(())
 }
-
-
-
